@@ -1,4 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
-    <solid android:color="#800080" /> </shape>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <solid android:color="#9932CC"/> <!-- 按下时的颜色，深紫罗兰色 -->
+            <padding android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="10dp" />
+            <corners android:radius="50dp" />
+            <stroke android:width="2dp" android:color="#800080"/> <!-- 紫色边框 -->
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#EE82EE"/> <!-- 默认颜色，浅紫罗兰色 -->
+            <padding android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="10dp" />
+            <corners android:radius="50dp" />
+            <stroke android:width="2dp" android:color="#800080"/> <!-- 紫色边框 -->
+        </shape>
+    </item>
+</selector>

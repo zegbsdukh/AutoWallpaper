@@ -1,6 +1,7 @@
 package com.spicystudio.autowallpaper
 
 import android.Manifest
+import android.app.AlertDialog
 import android.app.WallpaperManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -34,7 +35,6 @@ class MainActivity : AppCompatActivity() {
 
     private val REQUEST_PERMISSIONS = 1
     private val imageFiles = mutableListOf<File>()
-    private lateinit var previewImageView: ImageView
     private lateinit var gridView: GridView
     private lateinit var addButton: Button
 
@@ -42,26 +42,42 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        previewImageView = findViewById(R.id.previewImageView)
         gridView = findViewById(R.id.gridView)
         addButton = findViewById(R.id.addButton)
 
-        Log.d("MainActivity", "onCreate: Initializing the app")
-
         checkAndRequestPermissions()
 
-        gridView.setOnItemClickListener { parent, view, position, id ->
+        gridView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
             val selectedImage = imageFiles[position]
-            val bitmap = BitmapFactory.decodeFile(selectedImage.absolutePath)
-            previewImageView.setImageBitmap(bitmap)
-            changeWallpaper(bitmap)
+            val intent = Intent(this, FullscreenImageActivity::class.java)
+            intent.putExtra("imagePath", selectedImage.absolutePath)
+            startActivity(intent)
+        }
+
+        gridView.onItemLongClickListener = AdapterView.OnItemLongClickListener { _, _, position, _ ->
+            val selectedImage = imageFiles[position]
+            AlertDialog.Builder(this)
+                .setTitle("Delete Image")
+                .setMessage("Are you sure you want to delete this image?")
+                .setPositiveButton("Yes") { _, _ ->
+                    selectedImage.delete()
+                    imageFiles.removeAt(position)
+                    (gridView.adapter as ImageAdapter).notifyDataSetChanged()
+                    Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("No", null)
+                .show()
+            true
         }
 
         val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
         registerReceiver(ScreenOffReceiver(), filter)
 
         addButton.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            }
             galleryLauncher.launch(intent)
         }
     }
@@ -151,34 +167,44 @@ class MainActivity : AppCompatActivity() {
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK && result.data != null) {
-            val selectedImageUri: Uri? = result.data!!.data
-            if (selectedImageUri != null) {
-                val destinationFolder = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "AutoWallpaper")
-                if (!destinationFolder.exists()) {
-                    destinationFolder.mkdirs()
-                }
-                val destinationFile = File(destinationFolder, "${System.currentTimeMillis()}.jpg")
-                try {
-                    Log.d("MainActivity", "galleryLauncher: Copying selected image to destination folder")
-                    contentResolver.openInputStream(selectedImageUri)?.use { inputStream ->
-                        FileOutputStream(destinationFile).use { outputStream ->
-                            inputStream.copyTo(outputStream)
-                        }
+            val clipData = result.data!!.clipData
+            val destinationFolder = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "AutoWallpaper")
+            if (!destinationFolder.exists()) {
+                destinationFolder.mkdirs()
+            }
+
+            try {
+                if (clipData != null) {
+                    for (i in 0 until clipData.itemCount) {
+                        val selectedImageUri = clipData.getItemAt(i).uri
+                        saveImageToFolder(selectedImageUri, destinationFolder)
                     }
-                    imageFiles.add(destinationFile)
-                    (gridView.adapter as ImageAdapter).notifyDataSetChanged()
-                    Toast.makeText(this, "Image Added", Toast.LENGTH_SHORT).show()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    Log.e("MainActivity", "galleryLauncher: Failed to add image", e)
-                    Toast.makeText(this, "Failed to add image", Toast.LENGTH_SHORT).show()
+                } else {
+                    val selectedImageUri: Uri? = result.data!!.data
+                    if (selectedImageUri != null) {
+                        saveImageToFolder(selectedImageUri, destinationFolder)
+                    }
                 }
-            } else {
-                Log.d("MainActivity", "galleryLauncher: Selected image URI is null")
+                (gridView.adapter as ImageAdapter).notifyDataSetChanged()
+                Toast.makeText(this, "Images Added", Toast.LENGTH_SHORT).show()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                Log.e("MainActivity", "galleryLauncher: Failed to add images", e)
+                Toast.makeText(this, "Failed to add images", Toast.LENGTH_SHORT).show()
             }
         } else {
             Log.d("MainActivity", "galleryLauncher: Image selection failed or canceled")
             Toast.makeText(this, "Image selection failed", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun saveImageToFolder(selectedImageUri: Uri, destinationFolder: File) {
+        val destinationFile = File(destinationFolder, "${System.currentTimeMillis()}.jpg")
+        contentResolver.openInputStream(selectedImageUri)?.use { inputStream ->
+            FileOutputStream(destinationFile).use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+        }
+        imageFiles.add(destinationFile)
     }
 }

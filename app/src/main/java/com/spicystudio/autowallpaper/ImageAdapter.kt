@@ -1,6 +1,5 @@
 package com.spicystudio.autowallpaper
 
-
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.view.View
