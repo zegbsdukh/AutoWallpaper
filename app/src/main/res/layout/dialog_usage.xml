@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/usageTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Press the add botton to select images from your gallery to be used as wallpapers.
+        \nLong press an image to delete it."
+        android:textSize="16sp"
+        android:paddingBottom="16dp"/>
+
+    <CheckBox
+        android:id="@+id/checkBoxDontShowAgain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Don't show again"/>
+
+    <Button
+        android:id="@+id/buttonConfirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:text="OK"/>
+
+</LinearLayout>

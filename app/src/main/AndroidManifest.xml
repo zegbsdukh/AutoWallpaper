@@ -11,9 +11,16 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="AutoWallpaper"
+        android:versionName="pre-0.1.2"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AutoWallpaper">
+
+        <!--
+        *<a href="https://www.freepik.com/icon/images_6364002#fromView=keyword&page=1&position=0&uuid=c27571bd-d63b-497a-8ea1-912e74426839">Icon by Freepik</a>
+        *<a href="https://www.flaticon.com/free-icons/recycle" title="recycle icons">Recycle icons created by Freepik - Flaticon</a>
+        *<a href="https://www.flaticon.com/free-icons/unlock" title="unlock icons">Unlock icons created by Prosymbols - Flaticon</a>
+        -->
 
         <!-- MainActivity -->
         <activity

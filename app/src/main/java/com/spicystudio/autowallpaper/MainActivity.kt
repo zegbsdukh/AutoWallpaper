@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -16,11 +17,11 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import android.view.View
+import android.view.LayoutInflater
 import android.widget.AdapterView
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.GridView
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -34,9 +35,12 @@ import java.util.Random
 class MainActivity : AppCompatActivity() {
 
     private val REQUEST_PERMISSIONS = 1
+    private val PREFS_NAME = "AutoWallpaperPrefs"
+    private val PREF_DONT_SHOW_AGAIN = "dontShowAgain"
     private val imageFiles = mutableListOf<File>()
     private lateinit var gridView: GridView
     private lateinit var addButton: Button
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +48,11 @@ class MainActivity : AppCompatActivity() {
 
         gridView = findViewById(R.id.gridView)
         addButton = findViewById(R.id.addButton)
+        sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+        if (!sharedPreferences.getBoolean(PREF_DONT_SHOW_AGAIN, false)) {
+            showUsageDialog()
+        }
 
         checkAndRequestPermissions()
 
@@ -80,6 +89,26 @@ class MainActivity : AppCompatActivity() {
             }
             galleryLauncher.launch(intent)
         }
+    }
+
+    private fun showUsageDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_usage, null)
+        val checkBox = dialogView.findViewById<CheckBox>(R.id.checkBoxDontShowAgain)
+        val buttonConfirm = dialogView.findViewById<Button>(R.id.buttonConfirm)
+
+        val alertDialog = AlertDialog.Builder(this)
+            .setTitle("Usage Instructions")
+            .setView(dialogView)
+            .create()
+
+        buttonConfirm.setOnClickListener {
+            if (checkBox.isChecked) {
+                sharedPreferences.edit().putBoolean(PREF_DONT_SHOW_AGAIN, true).apply()
+            }
+            alertDialog.dismiss()
+        }
+
+        alertDialog.show()
     }
 
     private fun checkAndRequestPermissions() {
